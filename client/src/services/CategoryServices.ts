@@ -1,27 +1,36 @@
 import axios from "axios";
 
 export const addCategory = async (category: any) => {
+  console.log("Adding category with data:", category);
   try {
     const res = await axios.post(
       "http://localhost:8080/api/v1.0/categories",
-      category
+      category,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
 
-    if (res.status === 201) {
-      return res.data;
-    } else {
-      throw new Error("Failed to add category");
-    }
+    return res.data;
   } catch (err) {
+    console.error("Add category failed:", err);
     throw err;
   }
 };
 
 export const deleteCategory = async (categoryId: string) => {
   try {
-    await axios.delete(
+    const res = await axios.delete(
       `http://localhost:8080/api/v1.0/categories/${categoryId}`
     );
+
+    if (res.status === 204) {
+      return res;
+    } else {
+      throw new Error("Failed to delete category");
+    }
   } catch (err) {
     throw err;
   }
