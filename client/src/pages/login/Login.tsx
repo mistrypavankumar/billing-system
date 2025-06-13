@@ -1,10 +1,10 @@
 import { useContext, useState } from "react";
-import { assets } from "../../assets/assets";
-import "./Login.css";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { login } from "../../services/AuthServices";
-import { redirect, useNavigate } from "react-router-dom";
 import { AppContext } from "../../context/AppContext";
+import { assets } from "../../assets/assets";
+import "./Login.css";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -18,31 +18,36 @@ const Login = () => {
 
   const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setState((preState) => ({ ...preState, [name]: value }));
+    setState((prevState) => ({ ...prevState, [name]: value }));
   };
 
   const onSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
+    const { email, password } = state;
+
+    if (!email || !password) {
+      toast.error("Please fill in all fields.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { email, password } = state;
-
-      if (!email || !password) {
-        toast.error("Please fill in all fields.");
-        setLoading(false);
-        return;
-      }
-
       const res = await login(email, password);
 
       if (res.status === 200) {
         toast.success("Login successful!");
 
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("role", JSON.stringify(res.data.role));
-        appContext?.setAuthData(res.data.token, res.data.role);
-        navigate("/dashboard");
+        const { token, role } = res.data;
+
+        localStorage.setItem("token", token);
+        localStorage.setItem("role", role);
+
+        appContext?.setAuthData(token, role);
+
+        // Navigate to dashboard after auth
+        navigate("/dashboard", { replace: true });
       }
     } catch (err) {
       toast.error("Login failed. Please check your credentials.");
@@ -59,7 +64,7 @@ const Login = () => {
           <p className="login-subtitle">Please log in to continue</p>
           <form className="login-form" onSubmit={onSubmitHandler}>
             <input
-              type="text"
+              type="email"
               placeholder="your-email@example.com"
               className="login-input"
               name="email"
