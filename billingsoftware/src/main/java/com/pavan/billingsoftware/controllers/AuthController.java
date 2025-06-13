@@ -3,7 +3,9 @@ package com.pavan.billingsoftware.controllers;
 
 import com.pavan.billingsoftware.io.auth.AuthRequest;
 import com.pavan.billingsoftware.io.auth.AuthResponse;
+import com.pavan.billingsoftware.services.UserService;
 import com.pavan.billingsoftware.services.impl.AppUserDetailsService;
+import com.pavan.billingsoftware.util.JWTUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +28,8 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final AppUserDetailsService appUserDetailsService;
+    private final JWTUtil jwtUtil;
+    private final UserService userService;
 
     // This api is for generate a encode password for admin
     @PostMapping("/encode")
@@ -38,8 +42,10 @@ public class AuthController {
         authenticate(request.getEmail(), request.getPassword());
         final UserDetails userDetails = appUserDetailsService.loadUserByUsername(request.getEmail());
 
-        //Todo: here need to generate token
-        return null;
+        final String jwtToken = jwtUtil.generateToken(userDetails);
+
+        String role = userService.getUserRole(request.getEmail());
+        return new AuthResponse(request.getEmail(), jwtToken, role);
     }
 
     private void authenticate(String email, String password) throws Exception {

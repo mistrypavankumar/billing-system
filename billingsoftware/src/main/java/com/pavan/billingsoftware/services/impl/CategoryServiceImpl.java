@@ -4,6 +4,7 @@ import com.pavan.billingsoftware.io.category.CategoryRequest;
 import com.pavan.billingsoftware.io.category.CategoryResponse;
 import com.pavan.billingsoftware.models.Category;
 import com.pavan.billingsoftware.repositories.CategoryRepository;
+import com.pavan.billingsoftware.repositories.ItemRepository;
 import com.pavan.billingsoftware.services.CategoryService;
 import com.pavan.billingsoftware.services.FileUploadService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final FileUploadService fileUploadService;
+    private final ItemRepository itemRepository;
 
     @Override
     public CategoryResponse add(CategoryRequest request, MultipartFile file) {
@@ -61,6 +63,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private CategoryResponse convertToResponse(Category category) {
+
+        Integer itemsCount =  itemRepository.countByCategoryId(category.getId());
+
         return CategoryResponse.builder()
                 .categoryId(category.getCategoryId())
                 .name(category.getName())
@@ -69,6 +74,7 @@ public class CategoryServiceImpl implements CategoryService {
                 .imgUrl(category.getImgUrl())
                 .createdAt(category.getCreatedAt())
                 .updatedAt(category.getUpdatedAt())
+                .items(itemsCount)
                 .build();
     }
 
