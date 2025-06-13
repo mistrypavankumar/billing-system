@@ -4,11 +4,11 @@ export const addCategory = async (category: any) => {
   console.log("Adding category with data:", category);
   try {
     const res = await axios.post(
-      "http://localhost:8080/api/v1.0/categories",
+      "http://localhost:8080/api/v1.0/admin/categories",
       category,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       }
     );
@@ -23,7 +23,12 @@ export const addCategory = async (category: any) => {
 export const deleteCategory = async (categoryId: string) => {
   try {
     const res = await axios.delete(
-      `http://localhost:8080/api/v1.0/categories/${categoryId}`
+      `http://localhost:8080/api/v1.0/admin/categories/${categoryId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
     );
 
     if (res.status === 204) {
@@ -38,7 +43,11 @@ export const deleteCategory = async (categoryId: string) => {
 
 export const getCategories = async () => {
   try {
-    const res = await axios.get("http://localhost:8080/api/v1.0/categories");
+    const res = await axios.get("http://localhost:8080/api/v1.0/categories", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
 
     if (res.status === 200) {
       return res.data;

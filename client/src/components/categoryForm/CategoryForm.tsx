@@ -50,8 +50,6 @@ const CategoryForm = () => {
       formData.append("category", JSON.stringify(data));
       formData.append("file", image);
 
-      console.log(formData);
-
       const res = await addCategory(formData);
 
       if (!res) {
