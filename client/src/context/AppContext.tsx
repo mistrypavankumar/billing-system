@@ -1,5 +1,6 @@
 import React, { useEffect, useState, createContext } from "react";
 import { getCategories } from "../services/CategoryServices";
+import { getItems } from "../services/ItemService";
 
 interface Category {
   categoryId: string;
@@ -7,8 +8,21 @@ interface Category {
   description: string;
   bgColor: string;
   imgUrl: string;
+  items: number;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Item {
+  itemId: string;
+  name: string;
+  price: number;
+  description: string;
+  imgUrl: string;
+  categoryId: string;
+  categoryName: string;
+  updatedAt: string;
+  createdAt: string;
 }
 
 interface AuthData {
@@ -22,6 +36,8 @@ interface AppContextType {
   setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
   auth: AuthData;
   setAuthData: (token: string, role: string) => void;
+  itemsData: Item[];
+  setItemsData: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -34,6 +50,7 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
   children,
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [itemsData, setItemsData] = useState<Item[]>([]);
 
   const [auth, setAuth] = useState<AuthData>({
     token: null,
@@ -45,8 +62,11 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
     const loadData = async () => {
       try {
         const res = await getCategories();
-        if (res) {
+        const itemRes = await getItems();
+
+        if (res && itemRes) {
           setCategories(res);
+          setItemsData(itemRes.data);
         } else {
           console.error("Failed to fetch categories");
         }
@@ -71,6 +91,8 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
     setCategories,
     auth,
     setAuthData,
+    itemsData,
+    setItemsData,
   };
 
   return (

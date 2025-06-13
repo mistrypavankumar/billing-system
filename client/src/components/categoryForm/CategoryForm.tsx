@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { assets } from "../../assets/assets";
 import toast from "react-hot-toast";
 import { addCategory } from "../../services/CategoryServices";
@@ -15,10 +15,6 @@ const CategoryForm = () => {
     description: "",
     bgColor: "#212529",
   });
-
-  useEffect(() => {
-    console.log(data);
-  }, [data]);
 
   const onChangeHandler = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

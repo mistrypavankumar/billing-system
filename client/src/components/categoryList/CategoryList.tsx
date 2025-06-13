@@ -31,8 +31,6 @@ const CategoryList = () => {
     }
   };
 
-  console.log(filteredCategories);
-
   return (
     <div
       className="category-list-container"
@@ -73,18 +71,18 @@ const CategoryList = () => {
                   <img
                     src={category.imgUrl || "https://placehold.co/48x48"}
                     alt={category.name}
-                    width={48}
-                    height={48}
+                    className="category-image"
                   />
                 </div>
                 <div className="flex-grow-1">
                   <h5 className="mb-1 text-white">{category.name}</h5>
-                  <p className="mb-0 text-white">{5} Items</p>
+                  <p className="mb-0 text-white">{category.items} Items</p>
                 </div>
                 <div>
                   <button
                     onClick={() => deleteByCategoryId(category.categoryId)}
                     className="btn btn-danger btn-sm"
+                    disabled={category.items > 0}
                   >
                     <i className="bi bi-trash"></i>
                   </button>

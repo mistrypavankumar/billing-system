@@ -8,13 +8,10 @@ import "./ManageUsers.css";
 
 const ManageUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchUsers() {
       try {
-        setLoading(true);
-
         const res = await getUsers();
 
         if (res.status === 200) {
@@ -22,15 +19,11 @@ const ManageUsers = () => {
         }
       } catch (err) {
         toast.error("Failed to fetch users. Please try again later.");
-      } finally {
-        setLoading(false);
       }
     }
 
     fetchUsers();
   }, []);
-
-  console.log(users);
 
   return (
     <div className="users-container text-light">
