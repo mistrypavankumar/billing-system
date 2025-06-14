@@ -17,12 +17,16 @@ const ProtectedRoute = () => {
       return;
     }
 
+    if (!appContext?.auth.isAuthenticated) {
+      appContext?.setAuthData(token, role);
+    }
+
     const timeout = setTimeout(() => {
       setLoading(false);
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [navigate, appContext]);
+  }, [navigate]); 
 
   if (loading) {
     return <Loader />;

@@ -71,6 +71,7 @@ const CategoryList = () => {
                   <img
                     src={category.imgUrl || "https://placehold.co/48x48"}
                     alt={category.name}
+                    loading="lazy"
                     className="category-image"
                   />
                 </div>

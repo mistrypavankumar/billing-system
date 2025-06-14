@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { login } from "../../services/AuthServices";
@@ -11,42 +11,53 @@ const Login = () => {
   const appContext = useContext(AppContext);
 
   const [loading, setLoading] = useState(false);
-  const [state, setState] = useState({
+  const [credentials, setCredentials] = useState({
     email: "",
     password: "",
   });
 
-  const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Redirect to dashboard if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (token && role && !appContext?.auth.isAuthenticated) {
+      appContext?.setAuthData(token, role);
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setState((prevState) => ({ ...prevState, [name]: value }));
+    setCredentials((prev) => ({ ...prev, [name]: value }));
   };
 
-  const onSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
 
-    const { email, password } = state;
+    const { email, password } = credentials;
 
     if (!email || !password) {
       toast.error("Please fill in all fields.");
-      setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     try {
       const res = await login(email, password);
 
       if (res.status === 200) {
-        toast.success("Login successful!");
-
         const { token, role } = res.data;
 
+        // Save to localStorage
         localStorage.setItem("token", token);
         localStorage.setItem("role", role);
 
+        // Update context
         appContext?.setAuthData(token, role);
 
-        // Navigate to dashboard after auth
+        toast.success("Login successful!");
         navigate("/dashboard", { replace: true });
       }
     } catch (err) {
@@ -62,14 +73,14 @@ const Login = () => {
         <div>
           <h1 className="login-title">Welcome to SalesBill</h1>
           <p className="login-subtitle">Please log in to continue</p>
-          <form className="login-form" onSubmit={onSubmitHandler}>
+          <form className="login-form" onSubmit={handleSubmit}>
             <input
               type="email"
               placeholder="your-email@example.com"
               className="login-input"
               name="email"
-              value={state.email}
-              onChange={onChangeHandler}
+              value={credentials.email}
+              onChange={handleChange}
               required
             />
             <input
@@ -77,8 +88,8 @@ const Login = () => {
               placeholder="Password"
               className="login-input"
               name="password"
-              value={state.password}
-              onChange={onChangeHandler}
+              value={credentials.password}
+              onChange={handleChange}
               required
             />
             <button type="submit" className="login-button" disabled={loading}>

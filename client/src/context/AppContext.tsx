@@ -41,7 +41,6 @@ interface AppContextType {
   setItemsData: React.Dispatch<React.SetStateAction<Item[]>>;
 }
 
-// Create Context
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 interface AppContextProviderProps {
@@ -59,7 +58,14 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
     isAuthenticated: false,
   });
 
-  // Load categories & items once
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    if (token && role) {
+      setAuthData(token, role);
+    }
+  }, []);
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -67,31 +73,34 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
           getCategories(),
           getItems(),
         ]);
-
         if (categoryRes && itemRes?.data) {
           setCategories(categoryRes);
           setItemsData(itemRes.data);
-        } else {
-          console.error("Failed to fetch data");
         }
       } catch (err) {
         console.error("Error loading data:", err);
       }
     };
 
-    loadData();
-  }, []);
+    if (auth.isAuthenticated) {
+      loadData();
+    }
+  }, [auth.isAuthenticated]);
 
-  // Auth setter
+  // Set auth (used from login + restore)
   const setAuthData = (token: string, role: string) => {
-    setAuth({
-      token,
-      role,
-      isAuthenticated: Boolean(token),
+    setAuth((prev) => {
+      if (prev.token === token && prev.role === role && prev.isAuthenticated) {
+        return prev;
+      }
+      return {
+        token,
+        role,
+        isAuthenticated: Boolean(token),
+      };
     });
   };
 
-  // Context value
   const contextValue: AppContextType = {
     categories,
     setCategories,
