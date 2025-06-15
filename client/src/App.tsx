@@ -11,6 +11,7 @@ import Login from "./pages/login/Login";
 
 import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import OrderHistory from "./components/orderHistory/OrderHistory";
 
 function App() {
   const location = useLocation();
@@ -33,6 +34,7 @@ function App() {
           <Route path="/manage/categories" element={<ManageCategories />} />
           <Route path="/manage/items" element={<ManageItems />} />
           <Route path="/manage/users" element={<ManageUsers />} />
+          <Route path="/manage/orders" element={<OrderHistory />} />
         </Route>
 
         {/* Catch-all route (404 redirect) */}

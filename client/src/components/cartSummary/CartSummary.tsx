@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { createOrder, deleteOrderById } from "../../services/OrderService";
 import { createRazorpayOrder, verifyRazorpayPayment } from "../../services/PaymentService";
 import { AppConstants } from "../../utils/constant";
+import type { OrderDetails } from "../../types/Order";
 
 interface CartSummaryProps {
   customerData: CustomerData;
@@ -15,10 +16,11 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   customerData,
   setCustomerData,
 }) => {
-  const { cartItems } = useAppContext();
+  const { cartItems, clearCart } = useAppContext();
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [orderDetails, setOrderDetails] = useState(null);
+  const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
 
   const totalAmount = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -27,6 +29,24 @@ const CartSummary: React.FC<CartSummaryProps> = ({
 
   const tax = totalAmount * 0.18; // Assuming 18% tax
   const grandTotal = totalAmount + tax;
+
+  const clearAll = () => {
+    setCustomerData({
+      customerName: "",
+      mobileNumber: "",
+    });
+
+    clearCart();
+  };
+
+  const placeOrder = () => {
+    setShowPopup(true);
+    clearAll();
+  };
+
+  const handlePrintReceipt = () => {
+    window.print();
+  };
 
   const loadRazorpayScript = () => {
     return new Promise((resolve, reject) => {
@@ -71,7 +91,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
       subtotal: totalAmount,
       tax,
       grandTotal,
-      paymentMode: paymentMode.toUpperCase(),
+      paymentMethod: paymentMode.toUpperCase(),
     };
 
     setIsProcessing(true);
@@ -83,7 +103,6 @@ const CartSummary: React.FC<CartSummaryProps> = ({
       if (res.status === 201 && paymentMode === "cash") {
         toast.success("Cash order placed successfully");
         setOrderDetails(savedData);
-        setCustomerData({ customerName: "", mobileNumber: "" });
       } else if (res.status === 201 && paymentMode === "upi") {
         const razorpayScriptLoaded = await loadRazorpayScript();
 
@@ -117,14 +136,13 @@ const CartSummary: React.FC<CartSummaryProps> = ({
             color: AppConstants.COMPANY_COLOR || "#F37254",
           },
           model: {
-
             // This is called when the used close the model without completing the payment
             ondismiss: async () => {
               await deleteOrderOnFailure(savedData.orderId);
               toast.error("Payment cancelled.");
-            }
-          }
-        }
+            },
+          },
+        };
 
         const razorpay = new (window as any).Razorpay(options);
 
@@ -139,40 +157,41 @@ const CartSummary: React.FC<CartSummaryProps> = ({
     } catch (err) {
       toast.error("Payment processing failed. Please try again.");
       console.error(err);
-    }finally {
-      setIsProcessing(false); 
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
-
   const verifyPaymentHandler = async (response: any, savedData: any) => {
-      const paymentData = {
-        razorpayOrderId: response.razorpay_order_id,
-        razorpayPaymentId: response.razorpay_payment_id,
-        razorpaySignature: response.razorpay_signature,
-        orderId: savedData.orderId
-      }
+    const paymentData = {
+      razorpayOrderId: response.razorpay_order_id,
+      razorpayPaymentId: response.razorpay_payment_id,
+      razorpaySignature: response.razorpay_signature,
+      orderId: savedData.orderId,
+    };
 
-      try{
-        const res = await verifyRazorpayPayment(paymentData);
+    try {
+      const res = await verifyRazorpayPayment(paymentData);
 
-        if(res.status === 200){
-          toast.success("UPI payment successful");
-          setOrderDetails({
-            ...savedData,
-            paymentDetails: {
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-            }
-          });
-          setCustomerData({ customerName: "", mobileNumber: "" });
-        }else{
-          toast.error("UPI payment verification failed. Please try again.");
-        }
-      }catch(err){
-        toast.error("Payment failed. Please try again.");
+      if (res.status === 200) {
+        toast.success("UPI payment successful");
+        setOrderDetails({
+          ...savedData,
+          paymentDetails: {
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+          },
+        });
+      } else {
+        toast.error("UPI payment verification failed. Please try again.");
       }
-  }
+    } catch (err) {
+      toast.error("Payment failed. Please try again.");
+    }
+  };
+
+  console.log("Order Details:", orderDetails);
 
   return (
     <div className="mt-2">
@@ -191,19 +210,39 @@ const CartSummary: React.FC<CartSummaryProps> = ({
         </div>
 
         <div className="d-flex gap-3">
-          <button className="btn btn-success flex-grow-1" onClick={() => {}}>
-            Cash
+          <button
+            className="btn btn-success flex-grow-1"
+            onClick={() => completePayment("cash")}
+            disabled={isProcessing}
+          >
+            {isProcessing ? "Processing..." : "Cash"}
           </button>
-          <button className="btn btn-primary flex-grow-1" onClick={() => {}}>
-            UPI
+          <button
+            className="btn btn-primary flex-grow-1"
+            onClick={() => completePayment("upi")}
+            disabled={isProcessing}
+          >
+            {isProcessing ? "Processing..." : "UPI"}
           </button>
         </div>
 
         <div className="d-flex gap-3 mt-3">
-          <button className="btn btn-warning flex-grow-1">Place Order</button>
+          <button
+            className="btn btn-warning flex-grow-1"
+            disabled={isProcessing || !orderDetails}
+            onClick={placeOrder}
+          >
+            Place Order
+          </button>
         </div>
 
-        {/* <ReceiptPopUp /> */}
+        {showPopup && (
+          <ReceiptPopUp
+            orderDetails={orderDetails!}
+            onClose={() => setShowPopup(false)}
+            onPrint={handlePrintReceipt}
+          />
+        )}
       </div>
     </div>
   );

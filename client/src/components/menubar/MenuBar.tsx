@@ -61,6 +61,11 @@ const MenuBar = () => {
               Manage Users
             </Link>
           </li>
+          <li className="nav-item">
+            <Link className="nav-link" to="/manage/orders">
+              Order History
+            </Link>
+          </li>
         </ul>
         {/* Add the dropdown for user profile */}
         <ul className="navbar-nav ms-auto ms-mb-0 me-3 me-lg-4">

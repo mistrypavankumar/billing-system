@@ -5,6 +5,7 @@ interface Item {
   description: string;
   imgUrl: string;
   categoryId: string;
+  quantity: number;
   categoryName: string;
   updatedAt: string;
   createdAt: string;

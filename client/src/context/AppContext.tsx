@@ -15,27 +15,13 @@ export interface Category {
   updatedAt: string;
 }
 
-export interface Item {
-  itemId: string;
-  name: string;
-  price: number;
-  description: string;
-  imgUrl: string;
-  categoryId: string;
-  categoryName: string;
-  updatedAt: string;
-  createdAt: string;
-}
-
 export interface AuthData {
   token: string | null;
   role: string | null;
   isAuthenticated: boolean;
 }
 
-interface CartItem extends Item {
-  quantity: number;
-}
+interface CartItem extends Item {}
 
 export interface AppContextType {
   categories: Category[];
@@ -51,6 +37,7 @@ export interface AppContextType {
   addToCart: (item: CartItem) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
+  clearCart: () => void;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -146,6 +133,10 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({
     );
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   const contextValue: AppContextType = {
     categories,
     setCategories,
@@ -160,6 +151,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({
     addToCart,
     removeFromCart,
     updateQuantity,
+    clearCart,
   };
 
   return (
