@@ -1,12 +1,23 @@
 import React from "react";
 import "./ItemCard.css";
+import { useAppContext } from "../../hooks/useAppContext";
+import toast from "react-hot-toast";
 
 interface ItemCardProps {
   item: Item;
 }
 
 const ItemCard: React.FC<ItemCardProps> = ({ item }) => {
-  const handleAddToCart = () => {};
+  const { addToCart } = useAppContext();
+
+  const handleAddToCart = () => {
+    addToCart({
+      ...item,
+      quantity: 1,
+    });
+
+    toast.success("Item added to cart");
+  };
 
   return (
     <div className="p-3 bg-dark rounded shadow-sm h-100 d-flex align-items-center item-card">

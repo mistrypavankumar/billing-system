@@ -1,9 +1,10 @@
-import React, { useEffect, useState, createContext } from "react";
+// context/AppContext.tsx
+import React, { createContext, useState, useEffect } from "react";
 import { getCategories } from "../services/CategoryServices";
 import { getItems } from "../services/ItemService";
 
 // Interfaces
-interface Category {
+export interface Category {
   categoryId: string;
   name: string;
   description: string;
@@ -14,7 +15,7 @@ interface Category {
   updatedAt: string;
 }
 
-interface Item {
+export interface Item {
   itemId: string;
   name: string;
   price: number;
@@ -26,32 +27,42 @@ interface Item {
   createdAt: string;
 }
 
-interface AuthData {
+export interface AuthData {
   token: string | null;
   role: string | null;
   isAuthenticated: boolean;
 }
 
-interface AppContextType {
+interface CartItem extends Item {
+  quantity: number;
+}
+
+export interface AppContextType {
   categories: Category[];
   setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
   auth: AuthData;
   setAuthData: (token: string, role: string) => void;
   itemsData: Item[];
   setItemsData: React.Dispatch<React.SetStateAction<Item[]>>;
+  selectedCategory: string;
+  selectCategory: (categoryId: string) => void;
+  clearSelectedCategory: () => void;
+  cartItems: CartItem[];
+  addToCart: (item: CartItem) => void;
+  removeFromCart: (itemId: string) => void;
+  updateQuantity: (itemId: string, quantity: number) => void;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
-interface AppContextProviderProps {
-  children: React.ReactNode;
-}
-
-export const AppContextProvider: React.FC<AppContextProviderProps> = ({
+export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [itemsData, setItemsData] = useState<Item[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
   const [auth, setAuth] = useState<AuthData>({
     token: null,
     role: null,
@@ -87,18 +98,52 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
     }
   }, [auth.isAuthenticated]);
 
-  // Set auth (used from login + restore)
   const setAuthData = (token: string, role: string) => {
-    setAuth((prev) => {
-      if (prev.token === token && prev.role === role && prev.isAuthenticated) {
-        return prev;
-      }
-      return {
-        token,
-        role,
-        isAuthenticated: Boolean(token),
-      };
+    setAuth({
+      token,
+      role,
+      isAuthenticated: Boolean(token),
     });
+  };
+
+  const selectCategory = (categoryId: string) =>
+    setSelectedCategory(categoryId);
+  const clearSelectedCategory = () => setSelectedCategory("");
+
+  const addToCart = (item: Item) => {
+    const existingItem = cartItems.find(
+      (cartItem) => cartItem.itemId === item.itemId
+    );
+
+    if (!existingItem) {
+      setCartItems((prevItems) => [...prevItems, { ...item, quantity: 1 }]);
+      return;
+    }
+
+    setCartItems((prevItems) =>
+      prevItems.map((cartItem) =>
+        cartItem.itemId === item.itemId
+          ? {
+              ...cartItem,
+              quantity: (cartItem.quantity || 1) + 1,
+            }
+          : cartItem
+      )
+    );
+  };
+
+  const removeFromCart = (itemId: string) => {
+    setCartItems((prevItems) =>
+      prevItems.filter((item) => item.itemId !== itemId)
+    );
+  };
+
+  const updateQuantity = (itemId: string, quantity: number) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) =>
+        item.itemId === itemId ? { ...item, quantity } : item
+      )
+    );
   };
 
   const contextValue: AppContextType = {
@@ -108,6 +153,13 @@ export const AppContextProvider: React.FC<AppContextProviderProps> = ({
     setAuthData,
     itemsData,
     setItemsData,
+    selectedCategory,
+    selectCategory,
+    clearSelectedCategory,
+    cartItems,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
   };
 
   return (

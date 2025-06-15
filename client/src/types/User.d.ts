@@ -6,3 +6,10 @@ interface User {
   createAt: string;
   updatedAt: string;
 }
+
+
+
+interface CustomerData {
+  customerName: string;
+  mobileNumber: string;
+}

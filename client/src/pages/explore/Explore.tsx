@@ -7,8 +7,15 @@ import CustomerForm from "../../components/customerForm/CustomerForm";
 import CartItems from "../../components/cartItems/CartItems";
 import CartSummary from "../../components/cartSummary/CartSummary";
 
+
+
 const Explore = () => {
   const appContext = useContext(AppContext);
+
+  const [customerData, setCustomerData] = useState<CustomerData>({
+    customerName: "",
+    mobileNumber: "",
+  });
 
   return (
     <div className="explore-container text-light">
@@ -23,7 +30,10 @@ const Explore = () => {
       </div>
       <div className="right-column d-flex flex-column">
         <div className="customer-form-container" style={{ height: "15%" }}>
-          <CustomerForm />
+          <CustomerForm
+            customerData={customerData}
+            setCustomerData={setCustomerData}
+          />
         </div>
         <hr className="my-3 text-light" />
         <div
@@ -33,7 +43,10 @@ const Explore = () => {
           <CartItems />
         </div>
         <div className="cart-summary-container" style={{ height: "30%" }}>
-          <CartSummary />
+          <CartSummary
+            customerData={customerData}
+            setCustomerData={setCustomerData}
+          />
         </div>
       </div>
     </div>
