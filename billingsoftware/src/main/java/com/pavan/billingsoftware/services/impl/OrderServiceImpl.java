@@ -4,13 +4,18 @@ import com.pavan.billingsoftware.io.order.OrderRequest;
 import com.pavan.billingsoftware.io.order.OrderResponse;
 import com.pavan.billingsoftware.io.payment.PaymentDetails;
 import com.pavan.billingsoftware.io.payment.PaymentMethod;
+import com.pavan.billingsoftware.io.payment.PaymentVerificationRequest;
 import com.pavan.billingsoftware.models.Order;
 import com.pavan.billingsoftware.models.OrderItem;
 import com.pavan.billingsoftware.repositories.OrderRepository;
 import com.pavan.billingsoftware.services.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.binary.Hex;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,6 +24,9 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+
+    @Value("${RAZORPAY_KEY_SECRET}")
+    private String razorpayKeySecret;
 
     @Override
     public OrderResponse createOrder(OrderRequest request) {
@@ -99,5 +107,41 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public OrderResponse verifyPayment(PaymentVerificationRequest request) {
+         Order existingOrder =  orderRepository.findByOrderId(request.getOrderId()).orElseThrow(() -> new RuntimeException("Order not found"));
+
+         if(!verifyRazorpaySignature(request.getRazorpayOrderId(), request.getRazorpayPaymentId(), request.getRazorpaySignature())){
+             throw new RuntimeException("Payment verification failed");
+         }
+
+         PaymentDetails paymentDetails = existingOrder.getPaymentDetails();
+
+         paymentDetails.setRazorpayOrderId(request.getRazorpayOrderId());
+         paymentDetails.setRazorpayPaymentId(request.getRazorpayPaymentId());
+         paymentDetails.setRazorpaySignature(request.getRazorpaySignature());
+         paymentDetails.setStatus(PaymentDetails.PaymentStatus.COMPLETED);
+
+         existingOrder =  orderRepository.save(existingOrder);
+         return convertToResponse(existingOrder);
+    }
+
+    private boolean verifyRazorpaySignature(String razorpayOrderId, String razorpayPaymentId, String razorpaySignature) {
+        try{
+            String payload = razorpayOrderId + "|" + razorpayPaymentId;
+            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(razorpayKeySecret.getBytes(), "HmacSHA256");
+            sha256_HMAC.init(secretKey);
+
+            byte[] hash = sha256_HMAC.doFinal(payload.getBytes());
+            String generatedSignature = Hex.encodeHexString(hash);
+
+            return generatedSignature.equals(razorpaySignature);
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
     }
 }

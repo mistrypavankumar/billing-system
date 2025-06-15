@@ -2,6 +2,7 @@ package com.pavan.billingsoftware.services;
 
 import com.pavan.billingsoftware.io.order.OrderRequest;
 import com.pavan.billingsoftware.io.order.OrderResponse;
+import com.pavan.billingsoftware.io.payment.PaymentVerificationRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,4 +14,6 @@ public interface OrderService {
     void deleteOrder(String orderId);
 
     List<OrderResponse> getLatestOrder();
+
+    OrderResponse verifyPayment(PaymentVerificationRequest request);
 }
