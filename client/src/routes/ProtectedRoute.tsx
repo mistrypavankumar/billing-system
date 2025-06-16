@@ -1,11 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { AppContext } from "../context/AppContext";
 import Loader from "../components/loader/Loader";
+import { useAppContext } from "../hooks/useAppContext";
 
-const ProtectedRoute = () => {
+const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
   const navigate = useNavigate();
-  const appContext = useContext(AppContext);
+  const { auth, setAuthData } = useAppContext();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,25 +17,20 @@ const ProtectedRoute = () => {
       return;
     }
 
-    if (!appContext?.auth.isAuthenticated) {
-      appContext?.setAuthData(token, role);
+    if (!auth.token || !auth.role) {
+      setAuthData(token, role);
     }
 
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 300);
+    setTimeout(() => {
+      if (allowedRoles && !allowedRoles.includes(role)) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        setLoading(false);
+      }
+    }, 200);
+  }, [navigate, allowedRoles, auth.token, auth.role, setAuthData]);
 
-    return () => clearTimeout(timeout);
-  }, [navigate]); 
-
-  if (loading) {
-    return <Loader />;
-  }
-
-  if (!appContext?.auth.isAuthenticated) {
-    navigate("/login", { replace: true });
-    return null;
-  }
+  if (loading) return <Loader />;
 
   return <Outlet />;
 };

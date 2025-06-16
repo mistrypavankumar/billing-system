@@ -5,7 +5,6 @@ import toast from "react-hot-toast";
 import { createOrder, deleteOrderById } from "../../services/OrderService";
 import { createRazorpayOrder, verifyRazorpayPayment } from "../../services/PaymentService";
 import { AppConstants } from "../../utils/constant";
-import type { OrderDetails } from "../../types/Order";
 
 interface CartSummaryProps {
   customerData: CustomerData;
@@ -27,7 +26,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
     0
   );
 
-  const tax = totalAmount * 0.18; // Assuming 18% tax
+  const tax = totalAmount * AppConstants.TAX; // Assuming 18% tax
   const grandTotal = totalAmount + tax;
 
   const clearAll = () => {
@@ -49,7 +48,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   };
 
   const loadRazorpayScript = () => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _) => {
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.onload = () => resolve(true);
@@ -190,8 +189,6 @@ const CartSummary: React.FC<CartSummaryProps> = ({
       toast.error("Payment failed. Please try again.");
     }
   };
-
-  console.log("Order Details:", orderDetails);
 
   return (
     <div className="mt-2">

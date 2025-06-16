@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { login } from "../../services/AuthServices";
@@ -16,16 +16,16 @@ const Login = () => {
     password: "",
   });
 
-  // Redirect to dashboard if already logged in
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+  // // Redirect to dashboard if already logged in
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   const role = localStorage.getItem("role");
 
-    if (token && role && !appContext?.auth.isAuthenticated) {
-      appContext?.setAuthData(token, role);
-      navigate("/dashboard", { replace: true });
-    }
-  }, [navigate]);
+  //   if (token && role) {
+  //     appContext?.setAuthData(token, role);
+  //     navigate("/dashboard", { replace: true });
+  //   }
+  // }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

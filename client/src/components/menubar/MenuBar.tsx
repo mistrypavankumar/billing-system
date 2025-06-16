@@ -1,18 +1,35 @@
 import "./MenuBar.css";
 import "../../assets/assets.js";
 import { assets } from "../../assets/assets";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { MenuLinksData } from "../../utils/constant.js";
+import { useAppContext } from "../../hooks/useAppContext.js";
 
 const MenuBar = () => {
-  const navigation = useNavigate();
+  const { auth, setAuthData } = useAppContext();
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
+    // Clear auth state & localStorage in one call
+    setAuthData(null, null);
 
-    // Redirect to login page after logout
-    navigation("/login", { replace: true });
+    // Wait a tick to ensure context updates before navigation
+    setTimeout(() => {
+      navigate("/login", { replace: true });
+    }, 50);
   };
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const isAdmin = auth.role === "ROLE_ADMIN";
+
+  const fileteredMenuLinks = MenuLinksData.filter(
+    (menu) => menu.isAdmin === isAdmin || !menu.isAdmin
+  );
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark px-2">
@@ -32,40 +49,16 @@ const MenuBar = () => {
       </button>
       <div className="collapse navbar-collapse p-2" id="navbarNav">
         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-          <li className="nav-item">
-            <Link
-              className="nav-link active"
-              aria-current="page"
-              to="/dashboard"
-            >
-              Dashboard
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/explore">
-              Explore
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/manage/items">
-              Manage Items
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/manage/categories">
-              Manage Categories
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/manage/users">
-              Manage Users
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link className="nav-link" to="/manage/orders">
-              Order History
-            </Link>
-          </li>
+          {fileteredMenuLinks.map((menu) => {
+            return (
+              <NavLink
+                key={menu.path}
+                isActive={isActive}
+                path={menu.path}
+                label={menu.label}
+              />
+            );
+          })}
         </ul>
         {/* Add the dropdown for user profile */}
         <ul className="navbar-nav ms-auto ms-mb-0 me-3 me-lg-4">
@@ -111,3 +104,24 @@ const MenuBar = () => {
 };
 
 export default MenuBar;
+
+const NavLink = ({
+  isActive,
+  path,
+  label,
+}: {
+  isActive: (path: string) => boolean;
+  path: string;
+  label: string;
+}) => {
+  return (
+    <li className="nav-item">
+      <Link
+        className={`nav-link ${isActive(path) ? "fw-bold text-warning" : ""}`}
+        to={path}
+      >
+        {label}
+      </Link>
+    </li>
+  );
+};

@@ -1,16 +1,14 @@
-import { useContext, useState } from "react";
-import { AppContext } from "../../context/AppContext";
+import { useState } from "react";
 import "./Explore.css";
 import DisplayCategory from "../../components/displayCategory/DisplayCategory";
 import DisplayItems from "../../components/displayItems/DisplayItems";
 import CustomerForm from "../../components/customerForm/CustomerForm";
 import CartItems from "../../components/cartItems/CartItems";
 import CartSummary from "../../components/cartSummary/CartSummary";
-
-
+import { useAppContext } from "../../hooks/useAppContext";
 
 const Explore = () => {
-  const appContext = useContext(AppContext);
+  const { categories } = useAppContext();
 
   const [customerData, setCustomerData] = useState<CustomerData>({
     customerName: "",
@@ -21,7 +19,7 @@ const Explore = () => {
     <div className="explore-container text-light">
       <div className="left-column">
         <div className="first-row" style={{ overflowY: "auto" }}>
-          <DisplayCategory categories={appContext?.categories || []} />
+          <DisplayCategory categories={categories || []} />
         </div>
         <hr className="horizontal-line" />
         <div className="second-row" style={{ overflowY: "auto" }}>

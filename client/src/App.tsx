@@ -8,10 +8,11 @@ import ManageCategories from "./pages/manageCategories/ManageCategories";
 import ManageItems from "./pages/manageItems/ManageItems";
 import ManageUsers from "./pages/manageUsers/ManageUsers";
 import Login from "./pages/login/Login";
+import OrderHistory from "./components/orderHistory/OrderHistory";
 
 import { Toaster } from "react-hot-toast";
 import ProtectedRoute from "./routes/ProtectedRoute";
-import OrderHistory from "./components/orderHistory/OrderHistory";
+import PublicRoute from "./routes/PublicRoute";
 
 function App() {
   const location = useLocation();
@@ -23,21 +24,31 @@ function App() {
       <Toaster />
 
       <Routes>
-        {/* Public Route */}
-        <Route path="/login" element={<Login />} />
+        {/* Public Routes */}
+        <Route element={<PublicRoute />}>
+          <Route path="/login" element={<Login />} />
+        </Route>
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
+        {/* Authenticated Routes */}
+        <Route
+          element={
+            <ProtectedRoute allowedRoles={["ROLE_ADMIN", "ROLE_USER"]} />
+          }
+        >
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/explore" element={<Explore />} />
-          <Route path="/manage/categories" element={<ManageCategories />} />
-          <Route path="/manage/items" element={<ManageItems />} />
-          <Route path="/manage/users" element={<ManageUsers />} />
           <Route path="/manage/orders" element={<OrderHistory />} />
         </Route>
 
-        {/* Catch-all route (404 redirect) */}
+        {/* Admin Protected Routes */}
+        <Route element={<ProtectedRoute allowedRoles={["ROLE_ADMIN"]} />}>
+          <Route path="/manage/categories" element={<ManageCategories />} />
+          <Route path="/manage/items" element={<ManageItems />} />
+          <Route path="/manage/users" element={<ManageUsers />} />
+        </Route>
+
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </div>

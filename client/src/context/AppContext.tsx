@@ -1,5 +1,5 @@
 // context/AppContext.tsx
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useMemo } from "react";
 import { getCategories } from "../services/CategoryServices";
 import { getItems } from "../services/ItemService";
 
@@ -21,20 +21,18 @@ export interface AuthData {
   isAuthenticated: boolean;
 }
 
-interface CartItem extends Item {}
-
 export interface AppContextType {
   categories: Category[];
   setCategories: React.Dispatch<React.SetStateAction<Category[]>>;
   auth: AuthData;
-  setAuthData: (token: string, role: string) => void;
+  setAuthData: (token: string | null, role: string | null) => void;
   itemsData: Item[];
   setItemsData: React.Dispatch<React.SetStateAction<Item[]>>;
   selectedCategory: string;
   selectCategory: (categoryId: string) => void;
   clearSelectedCategory: () => void;
-  cartItems: CartItem[];
-  addToCart: (item: CartItem) => void;
+  cartItems: Item[];
+  addToCart: (item: Item) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
@@ -48,7 +46,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [itemsData, setItemsData] = useState<Item[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<Item[]>([]);
 
   const [auth, setAuth] = useState<AuthData>({
     token: null,
@@ -65,27 +63,34 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [categoryRes, itemRes] = await Promise.all([
-          getCategories(),
-          getItems(),
-        ]);
-        if (categoryRes && itemRes?.data) {
-          setCategories(categoryRes);
-          setItemsData(itemRes.data);
-        }
-      } catch (err) {
-        console.error("Error loading data:", err);
-      }
-    };
-
     if (auth.isAuthenticated) {
       loadData();
     }
   }, [auth.isAuthenticated]);
 
-  const setAuthData = (token: string, role: string) => {
+  const loadData = async () => {
+    try {
+      const [categoryRes, itemRes] = await Promise.all([
+        getCategories(),
+        getItems(),
+      ]);
+
+      setCategories(categoryRes);
+      setItemsData(itemRes.data);
+    } catch (err) {
+      console.error("Error loading data:", err);
+    }
+  };
+
+  const setAuthData = (token: string | null, role: string | null) => {
+    if (!token || !role) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+    } else {
+      localStorage.setItem("token", token);
+      localStorage.setItem("role", role);
+    }
+
     setAuth({
       token,
       role,
@@ -112,7 +117,7 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({
         cartItem.itemId === item.itemId
           ? {
               ...cartItem,
-              quantity: (cartItem.quantity || 1) + 1,
+              quantity: (cartItem.quantity ?? 1) + 1,
             }
           : cartItem
       )
@@ -137,22 +142,25 @@ export const AppContextProvider: React.FC<{ children: React.ReactNode }> = ({
     setCartItems([]);
   };
 
-  const contextValue: AppContextType = {
-    categories,
-    setCategories,
-    auth,
-    setAuthData,
-    itemsData,
-    setItemsData,
-    selectedCategory,
-    selectCategory,
-    clearSelectedCategory,
-    cartItems,
-    addToCart,
-    removeFromCart,
-    updateQuantity,
-    clearCart,
-  };
+  const contextValue = useMemo(
+    () => ({
+      categories,
+      setCategories,
+      auth,
+      setAuthData,
+      itemsData,
+      setItemsData,
+      selectedCategory,
+      selectCategory,
+      clearSelectedCategory,
+      cartItems,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+    }),
+    [categories, auth, itemsData, selectedCategory, cartItems]
+  );
 
   return (
     <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>

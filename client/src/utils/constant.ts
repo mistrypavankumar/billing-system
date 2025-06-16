@@ -7,5 +7,39 @@ export const AppConstants = {
   COMPANY_PHONE: "+1-234-567-8900",
   COMPANY_EMAIL: "",
   COMPANY_COLOR: "#3399cc",
-  TAX: 5, // 5% tax
+  TAX: 0.18, // 18% tax
 };
+
+
+export const MenuLinksData = [
+  {
+    path: "/dashboard",
+    label: "Dashboard",
+    isAdmin: false,
+  },
+  {
+    path: "/explore",
+    label: "Explore",
+    isAdmin: false,
+  },
+  {
+    path: "/manage/items",
+    label: "Manage Items",
+    isAdmin: true,
+  },
+  {
+    path: "/manage/categories",
+    label: "Manage Categories",
+    isAdmin: true,
+  },
+  {
+    path: "/manage/users",
+    label: "Manage Users",
+    isAdmin: true,
+  },
+  {
+    path: "/manage/orders",
+    label: "Order History",
+    isAdmin: false,
+  },
+];

@@ -30,3 +30,10 @@ interface OrderDetails {
   createdAt: string;
   paymentDetails?: PaymentDetails;
 }
+
+
+interface SalesDashboardData {
+  todaySales: number;
+  todayOrderCount: number;
+  recentOrders: OrderDetails[];
+}
