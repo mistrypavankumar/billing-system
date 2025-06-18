@@ -52,7 +52,7 @@ billingsoftware/
 ### 🧑‍💻 Frontend (React + Vite)
 
 ```bash
-cd billingsoftware/client
+cd billing-system/client
 npm install
 npm run dev
 ```
@@ -62,7 +62,7 @@ npm run dev
 Make sure MySQL is running and update the `application.properties` file accordingly.
 
 ```bash
-cd billingsoftware/billingsoftware
+cd billing-system/billingsoftware
 ./mvnw spring-boot:run
 ```
 
